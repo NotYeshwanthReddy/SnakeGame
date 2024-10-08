@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Snake Game with Swipe Controls</title>
+    <title>Snake Game with Swipe Controls and Dynamic Speed</title>
     <style>
         body {
             background-color: #000;
             margin: 0;
             overflow: hidden;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #scoreBoard {
+            font-size: 24px;
+            margin: 10px 0;
         }
         canvas {
             display: block;
@@ -17,7 +24,8 @@
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="scoreBoard">Score: 0</div>
+    <canvas id="gameCanvas" width="800" height="800"></canvas>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -37,6 +45,9 @@
         let touchStartY = 0;
         let touchEndX = 0;
         let touchEndY = 0;
+
+        let gameSpeed = 200; // Initial speed in milliseconds
+        let gameLoop;
 
         document.addEventListener('keydown', keyDown);
         canvas.addEventListener('touchstart', touchStart, false);
@@ -121,13 +132,7 @@
                 if (snake[i].x === headX && snake[i].y === headY) {
                     alert('Game Over! Your score: ' + score);
                     // Reset game
-                    snake = [{ x: 10, y: 10 }];
-                    velocity = { x: 0, y: 0 };
-                    score = 0;
-                    food = {
-                        x: Math.floor(Math.random() * tileCount),
-                        y: Math.floor(Math.random() * tileCount)
-                    };
+                    resetGame();
                     return;
                 }
             }
@@ -138,10 +143,9 @@
             // Check if food is eaten
             if (headX === food.x && headY === food.y) {
                 score++;
-                food = {
-                    x: Math.floor(Math.random() * tileCount),
-                    y: Math.floor(Math.random() * tileCount)
-                };
+                document.getElementById('scoreBoard').innerText = 'Score: ' + score;
+                adjustSpeed();
+                placeFood();
             } else {
                 // Remove tail
                 snake.pop();
@@ -162,11 +166,6 @@
             // Draw food
             ctx.fillStyle = '#f00';
             ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
-
-            // Draw score
-            ctx.fillStyle = '#fff';
-            ctx.font = '16px Arial';
-            ctx.fillText('Score: ' + score, 10, 20);
         }
 
         function game() {
@@ -174,7 +173,50 @@
             draw();
         }
 
-        setInterval(game, 100);
+        function startGame() {
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(game, gameSpeed);
+        }
+
+        function resetGame() {
+            snake = [{ x: 10, y: 10 }];
+            velocity = { x: 0, y: 0 };
+            score = 0;
+            gameSpeed = 200;
+            document.getElementById('scoreBoard').innerText = 'Score: ' + score;
+            placeFood();
+            startGame();
+        }
+
+        function adjustSpeed() {
+            // Increase speed as score increases
+            if (score <= 25) {
+                // Calculate new speed
+                gameSpeed = 200 - Math.floor((score / 25) * 100); // Speed ranges from 200ms to 100ms
+                startGame();
+            }
+        }
+
+        function placeFood() {
+            // Avoid placing food on the snake
+            let valid = false;
+            while (!valid) {
+                food = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+                valid = true;
+                for (let segment of snake) {
+                    if (segment.x === food.x && segment.y === food.y) {
+                        valid = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Start the game loop
+        startGame();
     </script>
 </body>
 </html>
