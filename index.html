@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snake Game</title>
+    <style>
+        body {
+            background-color: #000;
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #111;
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+
+        let snake = [{ x: 10, y: 10 }];
+        let velocity = { x: 0, y: 0 };
+        let food = {
+            x: Math.floor(Math.random() * tileCount),
+            y: Math.floor(Math.random() * tileCount)
+        };
+        let score = 0;
+
+        document.addEventListener('keydown', keyDown);
+
+        function keyDown(event) {
+            switch(event.keyCode) {
+                case 37: // Left arrow
+                    if (velocity.x !== 1) {
+                        velocity = { x: -1, y: 0 };
+                    }
+                    break;
+                case 38: // Up arrow
+                    if (velocity.y !== 1) {
+                        velocity = { x: 0, y: -1 };
+                    }
+                    break;
+                case 39: // Right arrow
+                    if (velocity.x !== -1) {
+                        velocity = { x: 1, y: 0 };
+                    }
+                    break;
+                case 40: // Down arrow
+                    if (velocity.y !== -1) {
+                        velocity = { x: 0, y: 1 };
+                    }
+                    break;
+            }
+        }
+
+        function update() {
+            let headX = snake[0].x + velocity.x;
+            let headY = snake[0].y + velocity.y;
+
+            // Wrap around edges
+            if (headX < 0) headX = tileCount - 1;
+            if (headX >= tileCount) headX = 0;
+            if (headY < 0) headY = tileCount - 1;
+            if (headY >= tileCount) headY = 0;
+
+            // Check collision with self
+            for (let i = 0; i < snake.length; i++) {
+                if (snake[i].x === headX && snake[i].y === headY) {
+                    alert('Game Over! Your score: ' + score);
+                    // Reset game
+                    snake = [{ x: 10, y: 10 }];
+                    velocity = { x: 0, y: 0 };
+                    score = 0;
+                    food = {
+                        x: Math.floor(Math.random() * tileCount),
+                        y: Math.floor(Math.random() * tileCount)
+                    };
+                    return;
+                }
+            }
+
+            // Add new head
+            snake.unshift({ x: headX, y: headY });
+
+            // Check if food is eaten
+            if (headX === food.x && headY === food.y) {
+                score++;
+                food = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+            } else {
+                // Remove tail
+                snake.pop();
+            }
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw snake
+            ctx.fillStyle = '#0f0';
+            snake.forEach(segment => {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+            });
+
+            // Draw food
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+
+            // Draw score
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('Score: ' + score, 10, 20);
+        }
+
+        function game() {
+            update();
+            draw();
+        }
+
+        setInterval(game, 100);
+    </script>
+</body>
+</html>
