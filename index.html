@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Snake Game</title>
+    <title>Snake Game with Swipe Controls</title>
     <style>
         body {
             background-color: #000;
@@ -33,7 +33,15 @@
         };
         let score = 0;
 
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+
         document.addEventListener('keydown', keyDown);
+        canvas.addEventListener('touchstart', touchStart, false);
+        canvas.addEventListener('touchmove', touchMove, false);
+        canvas.addEventListener('touchend', touchEnd, false);
 
         function keyDown(event) {
             switch(event.keyCode) {
@@ -57,6 +65,44 @@
                         velocity = { x: 0, y: 1 };
                     }
                     break;
+            }
+        }
+
+        function touchStart(event) {
+            const touch = event.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }
+
+        function touchMove(event) {
+            event.preventDefault(); // Prevent scrolling
+            const touch = event.touches[0];
+            touchEndX = touch.clientX;
+            touchEndY = touch.clientY;
+        }
+
+        function touchEnd() {
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal swipe
+                if (deltaX > 0 && velocity.x !== -1) {
+                    // Swipe right
+                    velocity = { x: 1, y: 0 };
+                } else if (deltaX < 0 && velocity.x !== 1) {
+                    // Swipe left
+                    velocity = { x: -1, y: 0 };
+                }
+            } else {
+                // Vertical swipe
+                if (deltaY > 0 && velocity.y !== -1) {
+                    // Swipe down
+                    velocity = { x: 0, y: 1 };
+                } else if (deltaY < 0 && velocity.y !== 1) {
+                    // Swipe up
+                    velocity = { x: 0, y: -1 };
+                }
             }
         }
 
