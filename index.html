@@ -70,8 +70,8 @@
             if (headY < 0) headY = tileCount - 1;
             if (headY >= tileCount) headY = 0;
 
-            // Check collision with self
-            for (let i = 0; i < snake.length; i++) {
+            // Check collision with self (start from i = 1 to skip head)
+            for (let i = 1; i < snake.length; i++) {
                 if (snake[i].x === headX && snake[i].y === headY) {
                     alert('Game Over! Your score: ' + score);
                     // Reset game
