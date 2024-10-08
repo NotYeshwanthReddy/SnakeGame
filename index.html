@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Snake Game with Swipe Controls and Dynamic Speed</title>
+    <title>Snake Game with Controls</title>
     <style>
         body {
             background-color: #000;
@@ -21,11 +21,27 @@
             background-color: #111;
             border: 1px solid #fff;
         }
+        #controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+        #controls button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
     <div id="scoreBoard">Score: 0</div>
     <canvas id="gameCanvas" width="800" height="800"></canvas>
+    <div id="controls">
+        <button id="decreaseSpeedButton">- Speed</button>
+        <button id="pauseButton">Pause</button>
+        <button id="increaseSpeedButton">+ Speed</button>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -48,11 +64,24 @@
 
         let gameSpeed = 200; // Initial speed in milliseconds
         let gameLoop;
+        let isPaused = false;
+
+        const gameSpeedMin = 50;  // Fastest speed
+        const gameSpeedMax = 500; // Slowest speed
+        const gameSpeedStep = 25; // Step size
 
         document.addEventListener('keydown', keyDown);
         canvas.addEventListener('touchstart', touchStart, false);
         canvas.addEventListener('touchmove', touchMove, false);
         canvas.addEventListener('touchend', touchEnd, false);
+
+        const pauseButton = document.getElementById('pauseButton');
+        const decreaseSpeedButton = document.getElementById('decreaseSpeedButton');
+        const increaseSpeedButton = document.getElementById('increaseSpeedButton');
+
+        pauseButton.addEventListener('click', togglePause);
+        decreaseSpeedButton.addEventListener('click', decreaseSpeed);
+        increaseSpeedButton.addEventListener('click', increaseSpeed);
 
         function keyDown(event) {
             switch(event.keyCode) {
@@ -144,7 +173,6 @@
             if (headX === food.x && headY === food.y) {
                 score++;
                 document.getElementById('scoreBoard').innerText = 'Score: ' + score;
-                adjustSpeed();
                 placeFood();
             } else {
                 // Remove tail
@@ -175,7 +203,9 @@
 
         function startGame() {
             if (gameLoop) clearInterval(gameLoop);
-            gameLoop = setInterval(game, gameSpeed);
+            if (!isPaused) {
+                gameLoop = setInterval(game, gameSpeed);
+            }
         }
 
         function resetGame() {
@@ -183,18 +213,11 @@
             velocity = { x: 0, y: 0 };
             score = 0;
             gameSpeed = 200;
+            isPaused = false;
+            pauseButton.innerText = 'Pause';
             document.getElementById('scoreBoard').innerText = 'Score: ' + score;
             placeFood();
             startGame();
-        }
-
-        function adjustSpeed() {
-            // Increase speed as score increases
-            if (score <= 25) {
-                // Calculate new speed
-                gameSpeed = 200 - Math.floor((score / 25) * 100); // Speed ranges from 200ms to 100ms
-                startGame();
-            }
         }
 
         function placeFood() {
@@ -205,14 +228,34 @@
                     x: Math.floor(Math.random() * tileCount),
                     y: Math.floor(Math.random() * tileCount)
                 };
-                valid = true;
-                for (let segment of snake) {
-                    if (segment.x === food.x && segment.y === food.y) {
-                        valid = false;
-                        break;
-                    }
-                }
+                valid = !snake.some(segment => segment.x === food.x && segment.y === food.y);
             }
+        }
+
+        function togglePause() {
+            if (isPaused) {
+                // Resume the game
+                isPaused = false;
+                pauseButton.innerText = 'Pause';
+                startGame();
+            } else {
+                // Pause the game
+                isPaused = true;
+                pauseButton.innerText = 'Resume';
+                if (gameLoop) clearInterval(gameLoop);
+            }
+        }
+
+        function decreaseSpeed() {
+            gameSpeed += gameSpeedStep;
+            if (gameSpeed > gameSpeedMax) gameSpeed = gameSpeedMax;
+            startGame();
+        }
+
+        function increaseSpeed() {
+            gameSpeed -= gameSpeedStep;
+            if (gameSpeed < gameSpeedMin) gameSpeed = gameSpeedMin;
+            startGame();
         }
 
         // Start the game loop
